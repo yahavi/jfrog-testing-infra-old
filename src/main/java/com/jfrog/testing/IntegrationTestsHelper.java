@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.jfrog.artifactory.client.model.impl.RepositoryTypeImpl.*;
 import static org.junit.Assert.*;
@@ -86,6 +85,16 @@ public class IntegrationTestsHelper implements AutoCloseable {
     }
 
     /**
+     * Get the repository key of the temporary test repository.
+     *
+     * @param repository - The repository base name
+     * @return repository key of the temporary test repository
+     */
+    public static String getRepoKey(TestRepository repository, long timestamp) {
+        return String.format("%s-%d", repository.getRepoName(), timestamp);
+    }
+
+    /**
      * Clean up old test repositories.
      */
     public void cleanUpArtifactory() {
@@ -128,16 +137,6 @@ public class IntegrationTestsHelper implements AutoCloseable {
     private boolean isRepositoryOld(Matcher repoMatcher) {
         long repoTimestamp = Long.parseLong(repoMatcher.group(2));
         return TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - repoTimestamp) >= 24;
-    }
-
-    /**
-     * Get the repository key of the temporary test repository.
-     *
-     * @param repository - The repository base name
-     * @return repository key of the temporary test repository
-     */
-    static String getRepoKey(TestRepository repository, long timestamp) {
-        return String.format("%s-%d", repository.getRepoName(), timestamp);
     }
 
     /**
