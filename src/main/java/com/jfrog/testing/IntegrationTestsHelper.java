@@ -156,18 +156,22 @@ public class IntegrationTestsHelper implements AutoCloseable {
             }
             String repositorySettings = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             repositorySettings = repoSubstitutor.replace(repositorySettings);
+            String repoKey = getRepoKey(repository, timestamp);
             artifactoryClient.restCall(new ArtifactoryRequestImpl()
                     .method(ArtifactoryRequest.Method.PUT)
                     .requestType(ArtifactoryRequest.ContentType.JSON)
-                    .apiUrl("api/repositories/" + getRepoKey(repository, timestamp))
+                    .apiUrl("api/repositories/" + repoKey)
                     .requestBody(repositorySettings));
+            System.out.println("Repository " + repoKey + " created");
         } catch (Exception e) {
             fail(ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
     public void deleteRepo(TestRepository repository, long timestamp) {
-        artifactoryClient.repository(getRepoKey(repository, timestamp)).delete();
+        String repoKey = getRepoKey(repository, timestamp);
+        artifactoryClient.repository(repoKey).delete();
+        System.out.println("Repository " + repoKey + " deleted");
     }
 
     /**
