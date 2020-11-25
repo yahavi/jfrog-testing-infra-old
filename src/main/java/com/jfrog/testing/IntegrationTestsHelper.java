@@ -46,6 +46,9 @@ import static org.junit.Assert.*;
 @SuppressWarnings("unused")
 public class IntegrationTestsHelper implements AutoCloseable {
 
+    // The repository timestamp. Used to provide uniqueness across parallel test runs.
+    public static long repoTimestamp = System.currentTimeMillis();
+
     private static final Pattern REPO_PATTERN = Pattern.compile("^jfrog-rt-tests(-\\w*)+-(\\d*)$");
 
     private final ArtifactoryBuildInfoClient buildInfoClient;
@@ -90,8 +93,8 @@ public class IntegrationTestsHelper implements AutoCloseable {
      * @param repository - The repository base name
      * @return repository key of the temporary test repository
      */
-    public static String getRepoKey(TestRepository repository, long timestamp) {
-        return String.format("%s-%d", repository.getRepoName(), timestamp);
+    public static String getRepoKey(TestRepository repository) {
+        return String.format("%s-%d", repository.getRepoName(), repoTimestamp);
     }
 
     /**
@@ -145,9 +148,8 @@ public class IntegrationTestsHelper implements AutoCloseable {
      * @param repository      - The repository base name
      * @param repoSubstitutor - Replace variables inside the repo configuration file
      * @param classLoader     - The class loader to allow read from resources
-     * @param timestamp       - The repository timestamp, for uniqueness
      */
-    public void createRepo(TestRepository repository, StrSubstitutor repoSubstitutor, ClassLoader classLoader, long timestamp) {
+    public void createRepo(TestRepository repository, StrSubstitutor repoSubstitutor, ClassLoader classLoader) {
         String repositorySettingsPath = Paths.get("integration", "settings", repository.getRepoName() + ".json").toString();
         try (InputStream inputStream = classLoader.getResourceAsStream(repositorySettingsPath)) {
             if (inputStream == null) {
@@ -155,7 +157,7 @@ public class IntegrationTestsHelper implements AutoCloseable {
             }
             String repositorySettings = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             repositorySettings = repoSubstitutor.replace(repositorySettings);
-            String repoKey = getRepoKey(repository, timestamp);
+            String repoKey = getRepoKey(repository);
             artifactoryClient.restCall(new ArtifactoryRequestImpl()
                     .method(ArtifactoryRequest.Method.PUT)
                     .requestType(ArtifactoryRequest.ContentType.JSON)
@@ -167,8 +169,13 @@ public class IntegrationTestsHelper implements AutoCloseable {
         }
     }
 
-    public void deleteRepo(TestRepository repository, long timestamp) {
-        String repoKey = getRepoKey(repository, timestamp);
+    /**
+     * Delete the test repository.
+     *
+     * @param repository - The test repository to delete
+     */
+    public void deleteRepo(TestRepository repository) {
+        String repoKey = getRepoKey(repository);
         artifactoryClient.repository(repoKey).delete();
         System.out.println("Repository " + repoKey + " deleted");
     }
