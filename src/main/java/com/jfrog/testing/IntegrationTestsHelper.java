@@ -90,19 +90,10 @@ public class IntegrationTestsHelper implements AutoCloseable {
      */
     public static void verifyEnvironment(String envKey) {
         if (StringUtils.isBlank(System.getenv(envKey))) {
-            String msg = envKey + " is not set";
+            String msg = "'" + envKey + "' environment variable is missing!";
             System.err.println(msg);
             throw new IllegalArgumentException(msg);
         }
-    }
-
-    /**
-     * Get the integration tests dir.
-     *
-     * @return integration tests dir
-     */
-    public Path getIntegrationDir() {
-        return Paths.get("src", "test", "resources", "integration");
     }
 
     /**
