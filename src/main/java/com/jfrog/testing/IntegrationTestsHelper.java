@@ -46,6 +46,16 @@ import static org.junit.Assert.*;
 @SuppressWarnings("unused")
 public class IntegrationTestsHelper implements AutoCloseable {
 
+    // Environment variables names
+    public static final String ARTIFACTORY_USERNAME_ENV = "ARTIFACTORY_USERNAME";
+    public static final String ARTIFACTORY_PASSWORD_ENV = "ARTIFACTORY_PASSWORD";
+    public static final String ARTIFACTORY_URL_ENV = "ARTIFACTORY_URL";
+
+    // Environment variables values
+    public static final String ARTIFACTORY_USERNAME = System.getenv(ARTIFACTORY_USERNAME_ENV);
+    public static final String ARTIFACTORY_PASSWORD = System.getenv(ARTIFACTORY_PASSWORD_ENV);
+    public static final String ARTIFACTORY_URL = System.getenv(ARTIFACTORY_URL_ENV);
+
     // The repository timestamp. Used to provide uniqueness across parallel test runs.
     public static long repoTimestamp = System.currentTimeMillis();
 
@@ -54,18 +64,36 @@ public class IntegrationTestsHelper implements AutoCloseable {
     private final ArtifactoryBuildInfoClient buildInfoClient;
     private final Artifactory artifactoryClient;
 
-    /**
-     * @param url      - Artifactory URL
-     * @param username - Artifactory username
-     * @param password - Artifactory password
-     */
-    public IntegrationTestsHelper(String url, String username, String password) {
-        buildInfoClient = new ArtifactoryBuildInfoClient(url, username, password, new NullLog());
+    public IntegrationTestsHelper() {
+        verifyEnvironment();
+        buildInfoClient = new ArtifactoryBuildInfoClient(ARTIFACTORY_URL, ARTIFACTORY_USERNAME, ARTIFACTORY_PASSWORD, new NullLog());
         artifactoryClient = ArtifactoryClientBuilder.create()
-                .setUrl(url)
-                .setUsername(username)
-                .setPassword(password)
+                .setUrl(ARTIFACTORY_URL)
+                .setUsername(ARTIFACTORY_USERNAME)
+                .setPassword(ARTIFACTORY_PASSWORD)
                 .build();
+    }
+
+    /**
+     * Verify Artifactory environment variables for the tests.
+     */
+    private void verifyEnvironment() {
+        verifyEnvironment(ARTIFACTORY_URL_ENV);
+        verifyEnvironment(ARTIFACTORY_USERNAME_ENV);
+        verifyEnvironment(ARTIFACTORY_PASSWORD_ENV);
+    }
+
+    /**
+     * Verify a single environment variable.
+     *
+     * @param envKey - The environment variable key to verify
+     */
+    public static void verifyEnvironment(String envKey) {
+        if (StringUtils.isBlank(System.getenv(envKey))) {
+            String msg = envKey + " is not set";
+            System.err.println(msg);
+            throw new IllegalArgumentException(msg);
+        }
     }
 
     /**

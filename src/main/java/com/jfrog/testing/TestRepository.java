@@ -3,6 +3,7 @@ package com.jfrog.testing;
 /**
  * @author yahavi
  */
+@SuppressWarnings("unused")
 public class TestRepository {
     public enum RepoType {
         LOCAL,
